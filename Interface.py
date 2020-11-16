@@ -18,17 +18,20 @@ import urllib3
 import io
 # Para descargar el Video
 import requests
+#new
+from threading import Thread
+from urllib.request import urlretrieve, urlcleanup
 #Clase Para Hacer El Frame Scrolleable 
 class ScrollableFrame(ttk.Frame):
     def __init__(self, container, *args, **kwargs):
         #Varibales de Color
-        fondo      = "#191919"
-        self.backgound = fondo
-        #Estilos de botones y fondos
+        self.fondo = "#191919"
+        self.backgound = self.fondo
+        #Estilos de botones y self.fondos
         styl = ttk.Style()
-        styl.configure('new.TFrame', background=fondo)
+        styl.configure('new.TFrame', background=self.fondo)
         super().__init__(container, *args, **kwargs)
-        canvas = tk.Canvas(self,bg=fondo)
+        canvas = tk.Canvas(self,bg=self.fondo)
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
         self.scrollable_frame = ttk.Frame(canvas, style='new.TFrame')
 
@@ -55,16 +58,17 @@ class App_Window(tk. Tk):
 
     def inicializar(self):
         #Varibales de Color
-        primario   = "#f20000"
-        secundario = "#69A1F4"
-        fondo      = "#191919"
-        fondo_diluido      = "#e5e5ff"
-        self.backgound = fondo
+        self.primario   = "#f20000"
+        self.secundario = "#69A1F4"
+        self.fondo      = "#191919"
+        self.fondo_diluido      = "#e5e5ff"
+        self.exito      = "#00b300"
+        self.backgound = self.fondo
         #Estilos de botones y fondos
         styl = ttk.Style()
-        styl.configure('new.TFrame', background=fondo)
+        styl.configure('new.TFrame', background=self.fondo)
         styl2 = ttk.Style()
-        styl2.configure('TButton', background=secundario)
+        styl2.configure('TButton', background=self.secundario)
 
         #declaracion de variables
         self.entrada          = tk.StringVar()
@@ -83,11 +87,11 @@ class App_Window(tk. Tk):
         img = mpimg.imread("haker.jpg")#Puedes poner la que gustes 
         # creamos la figura y el widget asociado
         f = Figure(figsize=(5, 4), dpi=100)
-        f.patch.set_facecolor(fondo)
+        f.patch.set_facecolor(self.fondo)
         self.ax1 = f.add_subplot(111)
         #Activamos el autoescalado del os ejes
         self.ax1.imshow(img)
-        self.ax1.set_facecolor(fondo)
+        self.ax1.set_facecolor(self.fondo)
         self.ax1.axis('off')
         #Recalculamos los ejes
         self.ax1.relim()
@@ -99,7 +103,7 @@ class App_Window(tk. Tk):
         numero_grid   = 0
         #Definir Las etiquetas
         lrelacion     = tk.Label(miFrame.scrollable_frame , text = "URL-")
-        lrelacion    .  config(background = fondo)
+        lrelacion    .  config(background = self.fondo)
         lrelacion    .  grid(row = numero_grid , column = 0 , padx = 10 , pady = 10)
         #Funcion para agregar el evento enter 
         def on_key_press(event):
@@ -110,21 +114,24 @@ class App_Window(tk. Tk):
         self.etexto        = tk.Entry(miFrame.scrollable_frame, textvariable=self.entrada)
         self.etexto       .  bind('<Return>', on_key_press)
         self.etexto       .  grid(row =numero_grid, column=1,padx=10,pady=10)
-        econjuntor    = tk.Entry(miFrame.scrollable_frame, textvariable=self.conjunto_string , state=tk.DISABLED)
         self.botonadd = ttk.Button (miFrame.scrollable_frame , text="Get Video" , command = self.obtenerURL)
         self.botonadd.  grid(row = numero_grid, column = 3 , padx = 10 , pady = 10)
         botonlimpiar = ttk.Button (miFrame.scrollable_frame, text="Clear" , command = self.clear)
         botonlimpiar.  grid(sticky = (tk. N, tk. W, tk. E, tk. S) , row = numero_grid , column = 2 , padx = 10 , pady = 10 , columnspan = 1)
         numero_grid   = numero_grid + 1
         #--------------------------------------------------------------------
-        econjuntor   .  grid(sticky=(tk. N, tk. W, tk. E, tk. S) , row = numero_grid , column = 0 , padx = 10 , pady = 10 , columnspan = 5)
-        econjuntor   .  config(disabledbackground = primario , disabledforeground = fondo)
+        self.progressbar = ttk.Progressbar(self)
+        self.progressbar.place(x=70, y=60, width=385)
+        numero_grid   = numero_grid + 1
+        self.econjuntor    = tk.Entry(miFrame.scrollable_frame, textvariable=self.conjunto_string , state=tk.DISABLED)
+        self.econjuntor   .  grid(sticky=(tk. N, tk. W, tk. E, tk. S) , row = numero_grid , column = 0 , padx = 10 , pady = 10 , columnspan = 5)
+        self.econjuntor   .  config(disabledbackground = self.primario , disabledforeground = self.fondo)
         numero_grid   = numero_grid + 1
         #--------------------------------------------------------------------
-        self.texbox   = tk.Text(miFrame.scrollable_frame , height = 10 , width = 30, bg = fondo_diluido)
+        self.texbox   = tk.Text(miFrame.scrollable_frame , height = 10 , width = 30, bg = self.fondo_diluido)
         self.texbox.    grid(sticky = (tk. N, tk. W, tk. E, tk. S), row = numero_grid , column = 0 , padx = 10 , pady = 10 , columnspan = 4)
         self.texbox.    config(state="disabled", foreground='gray31')
-        self.botonsdescargar = ttk.Button (miFrame.scrollable_frame, text="Download" , command = self.download)
+        self.botonsdescargar = ttk.Button (miFrame.scrollable_frame, text="Download" , command = self.downloadClick)
         self.botonsdescargar.  grid(sticky = (tk. N, tk. W, tk. E, tk. S) , row = numero_grid , column = 5 , padx = 10 , pady = 10 , columnspan = 1)
         self.botonsdescargar.config(state='disabled')
         self.conjunto_string.set("enjoy/*/*/*/*/*/enjoy/*/*/*/*/*/enjoy/*/*/*/*/*/")  
@@ -174,6 +181,7 @@ class App_Window(tk. Tk):
                             self.url_video = url_video_tmp
                 f.close()#cerramos el archivo (opcional)
                 self.botonsdescargar.config(state='normal')
+                self.econjuntor   .  config(disabledbackground = self.primario , disabledforeground = self.fondo)
                 return True
         return False
 
@@ -237,6 +245,7 @@ class App_Window(tk. Tk):
         self.texbox.delete('1.0', "end") 
         self.texbox.config(state='disabled')
         self.botonsdescargar.config(state='disabled')
+        self.econjuntor   .  config(disabledbackground = self.primario , disabledforeground = self.fondo)
 
     #Funcion para descargar
     #Input 
@@ -246,15 +255,30 @@ class App_Window(tk. Tk):
         self.botonsdescargar.config(state='disabled')
         self.botonadd.config(state='disabled')
         self.etexto.config(state='disabled')
-        print("Descargo El Video")
-        r = requests.get(self.url_video)
-        print("Escribiendo El Video")
-        # open method to open a file on your system and write the contents
-        with open( self.filename+ '.mp4', 'wb') as f:
-            f.write(r.content)
+        #Proceso disque con la barra
+        urlretrieve(self.url_video, self.filename+ '.mp4', self.download_status)
+        urlcleanup()
+        #Fin Proceso
         self.botonadd.config(state='normal')
         self.etexto.config(state='normal')
+        self.econjuntor   .  config(disabledbackground = self.exito , disabledforeground = self.fondo)
 
+    #Funcion para mandar el threath de descargar para que no se congele la app
+    #Input 
+    #Output Video descargado con el filname
+    def downloadClick(self):
+        Thread(target=self.download).start()
+
+    #Funcion para mostrar en la barra el proceso de descarga
+    #Input 
+    #Output Video descargado con el filname
+    def download_status(self, count, data_size, total_data):
+        if count == 0:
+            # Establecer el máximo valor para la barra de progreso.
+            self.progressbar.configure(maximum=total_data)
+        else:
+            # Aumentar el progreso.
+            self.progressbar.step(data_size)
 
 if __name__ == "__main__":
     MainWindow = App_Window(None)
