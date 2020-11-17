@@ -6,6 +6,7 @@
 # Para Modo Grafico
 import tkinter as tk
 from tkinter import ttk 
+from tkinter import messagebox
 #  Para Pintar Imagen (Inesesaria para funcionamiento)
 import matplotlib
 matplotlib. use('TkAgg')
@@ -259,6 +260,7 @@ class App_Window(tk. Tk):
         urlretrieve(self.url_video, self.filename+ '.mp4', self.download_status)
         urlcleanup()
         #Fin Proceso
+        messagebox.showinfo("Downloaded", "Todo Shido Bro")
         self.botonadd.config(state='normal')
         self.etexto.config(state='normal')
         self.econjuntor   .  config(disabledbackground = self.exito , disabledforeground = self.fondo)
